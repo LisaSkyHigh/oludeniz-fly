@@ -478,5 +478,27 @@ setTimeout(()=>{tip.remove();},4200);
   });
 })();
 </script>
+
+<div id="tg-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#111;border-top:1px solid rgba(127,236,224,0.4);padding:10px 16px;font-family:Inter,sans-serif;font-size:13px;color:#fff;text-align:center;line-height:1.5;">
+  Для зума пальцами — открой в браузере<br>
+  <span style="color:#7FECE0;font-size:12px;">Нажми ··· → «Открыть в браузере»</span>
+  <span id="tg-close" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:20px;cursor:pointer;color:rgba(255,255,255,0.5);">×</span>
+</div>
+<script>
+// Detect Telegram in-app browser
+(function(){
+  var ua = navigator.userAgent || '';
+  var isTG = ua.indexOf('Telegram') !== -1 || 
+             (window.TelegramWebviewProxy !== undefined) ||
+             (window.TelegramWebviewProxyProto !== undefined);
+  if(isTG){
+    var b = document.getElementById('tg-banner');
+    if(b) b.style.display='block';
+    document.getElementById('tg-close').onclick = function(){
+      b.style.display='none';
+    };
+  }
+})();
+</script>
 </body>
 </html>
