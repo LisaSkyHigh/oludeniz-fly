@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Олюдениз для коливеров</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;900&family=Caveat:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; }
+
+.shell { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: #000; }
+@media (min-width: 600px) {
+  .shell { background: #181818; }
+  .deck { width: min(430px, 100vw); height: min(932px, 100vh); border-radius: 28px; overflow: hidden; box-shadow: 0 30px 100px rgba(0,0,0,0.85); }
+}
+@media (max-width: 599px) { .deck { width: 100vw; height: 100vh; } }
+.deck { position: relative; overflow: hidden; background: #080808; display: flex; flex-direction: column; }
+
+.slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; display: flex; flex-direction: column; }
+.slide.active { opacity: 1; pointer-events: auto; }
+
+.prow { flex-shrink: 0; display: flex; gap: 3px; padding: 12px 16px 0; background: #080808; }
+.pb { flex: 1; height: 2px; border-radius: 1px; background: rgba(255,255,255,0.10); }
+.pb.done { background: rgba(255,255,255,0.50); }
+.pb.cur { background: #fff; }
+
+.tp { flex: 0 0 auto; background: #080808; padding: clamp(10px,2.8vw,16px) clamp(16px,4vw,22px) clamp(9px,2.3vw,14px); display: flex; flex-direction: column; gap: clamp(4px,1.1vw,6px); }
+.bp { flex: 1; position: relative; overflow: hidden; min-height: 0; }
+.bp img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.bp video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center bottom; }
+.bp::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50px; background: linear-gradient(180deg,rgba(8,8,8,0.5) 0%,transparent 100%); z-index: 2; pointer-events: none; }
+.bp::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50px; background: linear-gradient(0deg,rgba(8,8,8,0.4) 0%,transparent 100%); z-index: 2; pointer-events: none; }
+
+.lbl { font-size: clamp(0.44rem,1.55vw,0.56rem); font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; color: rgba(255,255,255,0.22); }
+.h1 { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: clamp(1.35rem,5.6vw,1.95rem); line-height: 1.0; letter-spacing: -0.025em; color: #fff; }
+.h2 { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: clamp(1.05rem,4.4vw,1.55rem); line-height: 1.0; letter-spacing: -0.025em; color: #fff; }
+.teal { color: #7FECE0; }
+.gold { color: #FFE070; }
+.pink { color: #FF9EC8; }
+.body { font-size: clamp(0.58rem,1.95vw,0.74rem); color: rgba(255,255,255,0.52); line-height: 1.55; }
+.body strong { color: rgba(255,255,255,0.85); }
+.note { font-family: 'Caveat', cursive; font-size: clamp(0.65rem,2.2vw,0.85rem); font-weight: 700; color: rgba(255,220,130,0.6); }
+.sig { font-size: clamp(0.5rem,1.65vw,0.62rem); color: rgba(255,255,255,0.28); font-style: italic; margin-top: 2px; }
+
+.div { width: 26px; height: 2px; background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+.pills { display: flex; gap: 4px; flex-wrap: wrap; }
+.pill { font-size: clamp(0.48rem,1.65vw,0.61rem); padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.52); letter-spacing: 0.03em; }
+.pill.acc { border-color: rgba(127,236,224,0.3); background: rgba(14,148,136,0.22); color: #7FECE0; font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.stat { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); border-radius: 9px; padding: 6px 8px; }
+.sn { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: clamp(0.82rem,3vw,1.1rem); color: #fff; line-height: 1; letter-spacing: -0.025em; }
+.sn small { font-size: 0.52em; opacity: 0.6; }
+.sn.t { color: #7FECE0; }
+.sl { font-size: clamp(0.4rem,1.35vw,0.52rem); color: rgba(255,255,255,0.32); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 2px; line-height: 1.3; }
+
+.blist { display: flex; flex-direction: column; gap: 5px; }
+.br { display: flex; gap: 7px; align-items: flex-start; }
+.bi { font-size: 0.9rem; flex-shrink: 0; line-height: 1.35; }
+.bt { font-size: clamp(0.56rem,1.85vw,0.70rem); color: rgba(255,255,255,0.56); line-height: 1.5; }
+.bt b { color: rgba(255,255,255,0.88); }
+
+.scards { display: flex; flex-direction: column; gap: 5px; }
+.sc { display: flex; gap: 8px; align-items: flex-start; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); border-radius: 9px; padding: 7px 10px; }
+.si { font-size: 1rem; flex-shrink: 0; line-height: 1; }
+.sn2 { font-size: clamp(0.54rem,1.8vw,0.66rem); font-weight: 600; color: rgba(255,215,120,0.88); margin-bottom: 2px; }
+.st { font-size: clamp(0.48rem,1.6vw,0.59rem); color: rgba(255,255,255,0.44); line-height: 1.4; }
+
+.stages { display: flex; flex-direction: column; gap: 5px; }
+.stage { display: flex; gap: 9px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); border-radius: 9px; padding: 7px 10px; align-items: flex-start; }
+.stg-n { font-family: 'Unbounded', sans-serif; font-size: clamp(0.82rem,2.9vw,1rem); font-weight: 900; color: rgba(127,236,224,0.75); line-height: 1; flex-shrink: 0; width: 22px; }
+.stg-t { font-size: clamp(0.54rem,1.8vw,0.66rem); font-weight: 600; color: #fff; margin-bottom: 2px; }
+.stg-d { font-size: clamp(0.46rem,1.55vw,0.58rem); color: rgba(255,255,255,0.43); line-height: 1.4; }
+
+.quote { background: rgba(255,255,255,0.04); border-left: 2px solid rgba(127,236,224,0.35); border-radius: 0 8px 8px 0; padding: 6px 11px; }
+.qt { font-family: 'Caveat', cursive; font-size: clamp(0.66rem,2.2vw,0.85rem); font-weight: 700; color: rgba(255,235,185,0.7); line-height: 1.5; }
+
+.price-cards { display: flex; flex-direction: column; gap: 6px; }
+.pc { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 10px; padding: 9px 12px; }
+.pc-head { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.pc-i { font-size: 1rem; }
+.pc-name { font-size: clamp(0.56rem,1.85vw,0.68rem); font-weight: 600; color: rgba(255,220,130,0.9); }
+.pc-price { font-family: 'Unbounded', sans-serif; font-size: clamp(0.82rem,2.7vw,1.1rem); font-weight: 900; color: #fff; margin-bottom: 2px; }
+.pc-desc { font-size: clamp(0.46rem,1.5vw,0.58rem); color: rgba(255,255,255,0.40); line-height: 1.4; }
+
+.np, .nn { position: absolute; top: 0; bottom: 0; width: 40%; z-index: 50; cursor: pointer; }
+.np { left: 0; } .nn { right: 0; }
+.dots { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); z-index: 40; display: flex; gap: 5px; align-items: center; }
+.dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: all 0.3s; }
+.dot.active { width: 16px; border-radius: 3px; background: rgba(255,255,255,0.75); }
+
+[contenteditable] { cursor: text; caret-color: #7FECE0; outline: none; }
+[contenteditable]:hover { background: rgba(127,236,224,0.07); border-radius: 3px; }
+[contenteditable]:focus { background: rgba(0,0,0,0.18); border-radius: 4px; outline: 1.5px solid rgba(127,236,224,0.45); }
+.price-tag { display: inline-flex; align-items: center; background: rgba(127,236,224,0.1); border: 1px solid rgba(127,236,224,0.3); border-radius: 20px; padding: 3px 11px; font-size: clamp(0.54rem,1.75vw,0.67rem); font-weight: 700; color: #7FECE0; font-family: 'Unbounded', sans-serif; letter-spacing: -0.01em; margin-top: 2px; }
+.price-tag.plus { background: rgba(127,236,224,0.1); border-color: rgba(127,236,224,0.28); color: #7FECE0; }
+
+/* ═══ price tags ═══ */
+.price-tag.plus {
+    background:rgba(127,236,224,0.1); border-color:rgba(127,236,224,0.28); color:#7FECE0;
+}
+</style>
+</head>
+<body>
+<div class="shell"><div class="deck" id="deck">
+
+<!-- ═══ S01 · ОБЛОЖКА ═══ -->
+<div class="slide active">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">11–18 мая · Турция · Делаем для себя</div>
+    <div class="h1">ОЛЮДЕНИЗ<br><span class="teal">ДЛЯ КОЛИ&shy;ВЕРОВ</span></div>
+    <div class="div"></div>
+    <div class="pills">
+      <span class="pill">Общая вилла</span>
+      <span class="pill">Погружение в небо</span>
+      <span class="pill acc">Только для своих</span>
+    </div>
+  </div>
+  <div class="bp"><img src="media/IMG_2893.webp" loading="eager" decoding="async" style="object-position:center 30%;"></div>
+</div>
+
+<!-- ═══ S02 · ИСТОРИЯ ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Идея поездки</div>
+    <div class="h2">ПЛАНЕТА<br>ГЛАЗАМИ<br><span class="gold">ПТИЦ</span></div>
+    <div class="div"></div>
+    <div class="blist">
+      <div class="br"><div class="bi">✈</div><div class="bt">Команда Лизы отработала апрель–май. <b>Теперь — отдохнуть с друзьями</b> в любимом месте.</div></div>
+      <div class="br"><div class="bi">🪂</div><div class="bt">Лиза хочет <b>показать планету глазами птиц.</b> Мягко, легко, без страха.</div></div>
+    </div>
+    <div class="quote"><div class="qt">«Это не продукт школы. Просто друзья едут вместе, а Лиза погружает нас в своё тёплое небо.»</div></div>
+    <div class="sig">— Лиза Демина, основатель лётной школы Infinity Sky</div>
+  </div>
+  <div class="bp"><img src="media/IMG_2890.webp" loading="eager" decoding="async" style="object-position:center 80%;"></div>
+</div>
+
+<!-- ═══ S03 · ЛЁГКОЕ КАСАНИЕ ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Что нас ждёт</div>
+    <div class="h2">ЛЁГКОЕ<br>КАСАНИЕ<br><span class="teal">С НЕБОМ</span></div>
+    <div class="div"></div>
+    <div class="blist">
+      <div class="br"><div class="bi">🌤</div><div class="bt"><b>Первое погружение в новый спорт</b> — в самом красивом для него месте на планете.</div></div>
+      <div class="br"><div class="bi">🏡</div><div class="bt">Живём вместе — <b>совместные завтраки, глубокие разговоры,</b> вечера, которыми наполняем друг друга.</div></div>
+      <div class="br"><div class="bi">🎭</div><div class="bt"><b>Активности каждый день</b> — дюны, Кабак, каяки, катера, кайт.</div></div>
+      <div class="br"><div class="bi">✨</div><div class="bt">Вечером — своя атмосфера, музыка, тепло друг для друга. И <span class="teal"><b>вайбкодинг</b></span>.</div></div>
+    </div>
+  </div>
+  <div class="bp"><img src="media/IMG_2461.webp" loading="eager" decoding="async" style="object-position:center 35%;"></div>
+</div>
+
+<!-- ═══ S04 · ОЛЮДЕНИЗ ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Почему Олюдениз · Наш дом 18 лет</div>
+    <div class="h2">НАШ ДОМ<br><span class="teal">18 ЛЕТ</span></div>
+    <div class="div"></div>
+    <div class="stats">
+      <div class="stat"><div class="sn">360<small>дн</small></div><div class="sl">лётных в году</div></div>
+      <div class="stat"><div class="sn">2000<small>м</small></div><div class="sl">высота Бабадаг</div></div>
+      <div class="stat"><div class="sn t" style="font-size:clamp(0.55rem,2vw,0.78rem)">ноль</div><div class="sl">серьёзных инцидентов</div></div>
+    </div>
+    <div class="body">Самая красивая локация для первых полётов. <strong>Посадка ножками в тёплый песок у моря.</strong> Лиза летает здесь 18 лет.</div>
+    <div class="pills"><span class="pill">Виза не нужна</span><span class="pill acc">Аэропорт Даламан · 40 мин до локации</span></div>
+  </div>
+  <div class="bp"><img src="media/IMG_2485.webp" loading="eager" decoding="async" style="object-position:center 20%;"></div>
+</div>
+
+<!-- ═══ S05 · ПОГОДА ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Почему здесь всегда летают</div>
+    <div class="h2">360 ЛЁТНЫХ<br><span class="teal">ДНЕЙ В ГОДУ</span></div>
+    <div class="div"></div>
+    <div class="blist">
+      <div class="br"><div class="bi">🏔</div><div class="bt"><b>Горный хребет с континентальной стороны</b> отсекает холодные воздушные массы с материка.</div></div>
+      <div class="br"><div class="bi">🌊</div><div class="bt"><b>Бухты разбивают штормы</b> с моря — ветер рассеивается в скалах, не доходя до залива.</div></div>
+      <div class="br"><div class="bi">☀️</div><div class="bt"><b>Тёплый средиземноморский климат</b> и уникальная география создают идеальные условия для полётов круглый год.</div></div>
+    </div>
+  </div>
+  <div class="bp"><img src="media/IMG_2306.webp" loading="eager" decoding="async" style="object-position:50% 20%;"></div>
+</div>
+
+<!-- ═══ S06 · ПОЛУЧИТСЯ ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Любой возраст · Любой уровень</div>
+    <div class="h2">ТЫ ТОЧНО<br><span class="gold">СПРАВИШЬСЯ</span></div>
+    <div class="div"></div>
+    <div class="scards">
+      <div class="sc"><div class="si">🧒</div><div><div class="sn2">Сын Лизы летает самостоятельно с 7 лет</div><div class="st">Начал с нуля — сегодня самостоятельный пилот.</div></div></div>
+      <div class="sc"><div class="si">👵</div><div><div class="sn2">Наташа начала полёты в 60 лет</div><div class="st">Уже 2 года летает и делает воздушную акробатику на соревнованиях.</div></div></div>
+      <div class="sc"><div class="si">🙋</div><div><div class="sn2">Лиза — хрупкая девушка, с нуля</div><div class="st">Это смогла. Если у неё вышло — у тебя точно получится.</div></div></div>
+    </div>
+    <div class="note">Нет спешки — каждый погружается в спорт в своём темпе ✓</div>
+  </div>
+  <div class="bp"><img src="media/IMG_1596.webp" loading="eager" decoding="async" style="object-position:center 20%;"></div>
+</div>
+
+<!-- ═══ S07 · БЕЗОПАСНОСТЬ ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Безопасность · 18 лет · 5000+ учеников</div>
+    <div class="h2">18 ЛЕТ<br>5000+ УЧЕНИКОВ<br><span class="teal">ноль СЕРЬЁЗНЫХ ИНЦИДЕНТОВ</span></div>
+    <div class="div"></div>
+    <div class="blist">
+      <div class="br"><div class="bi">🛡</div><div class="bt">За 18 лет обучено <b>более 5000 учеников</b> в этой локации без единого серьёзного исхода. Это <b>невероятно крутой результат</b> в индустрии.</div></div>
+      <div class="br"><div class="bi">📋</div><div class="bt">Методология школы <b>включена в стандарты международного обучения APPI</b> и преподаётся по всему миру — мы создали эту методологию.</div></div>
+      <div class="br"><div class="bi">🩺</div><div class="bt"><b>Страховка 30 000 USD</b> на парапланерный спорт включена в стоимость.</div></div>
+      <div class="br"><div class="bi">📡</div><div class="bt">Инструктор на старте + на посадке + <b>радиосвязь</b> в воздухе весь полёт.</div></div>
+    </div>
+  </div>
+  <div class="bp"><img src="media/IMG_2995.webp" loading="eager" decoding="async" style="object-position:center 15%;"></div>
+</div>
+
+<!-- ═══ S08 · КАК РАБОТАЕТ ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Как это работает · Твой путь в небо</div>
+    <div class="h2">3 ЭТАПА<br><span class="teal">К НЕБУ</span></div>
+    <div class="div"></div>
+    <div class="stages">
+      <div class="stage"><div class="stg-n">01</div><div><div class="stg-t">Наземная подготовка</div><div class="stg-d">Учишься чувствовать купол — поднять, управлять, положить. По твоему темпу тела.</div></div></div>
+      <div class="stage"><div class="stg-n">02</div><div><div class="stg-t">Тандем + первые полёты на дюнах</div><div class="stg-d">Летишь вместе с инструктором, тебе передают управление. На дюнах — первые полёты высотой 1 метр над тёплым песком.</div></div></div>
+      <div class="stage"><div class="stg-n">03</div><div><div class="stg-t">Первые соло-полёты</div><div class="stg-d">Ты под колпаком: инструктор на старте, ведёт по рации весь путь, встречает на посадке.</div></div></div>
+    </div>
+  </div>
+  <div class="bp"><img src="media/IMG_1227.webp" loading="eager" decoding="async" style="object-position:center 15%;"></div>
+</div>
+
+<!-- ═══ S09 · ПРОГРАММА ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Как выглядит неделя</div>
+    <div class="h2">КАЖДЫЙ ДЕНЬ<br><span class="teal">В КАЙФ</span></div>
+    <div class="div"></div>
+    <div class="blist">
+      <div class="br"><div class="bi">🌅</div><div class="bt"><b>Утро — занятия с парапланом.</b> Наземка · тандем · дюны · соло-полёты. По этапу.</div></div>
+      <div class="br"><div class="bi">🌊</div><div class="bt"><b>День — активности.</b> Кабак, катер, кайт, хамам или просто пляж.</div></div>
+      <div class="br"><div class="bi">🌙</div><div class="bt"><b>Вечер — вместе.</b> Ужин, барбекю, музыка, разговоры. Своя атмосфера.</div></div>
+      <div class="br"><div class="bi">🌧</div><div class="bt">Нелётный день? <b>Мастер-классы, туризм</b> — всегда есть чем заняться.</div></div>
+    </div>
+  </div>
+  <div class="bp"><img src="media/IMG_2471.webp" loading="eager" decoding="async" style="object-position:center 10%;"></div>
+</div>
+
+<!-- ═══ S10 · АКТИВНОСТИ ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Активности · Каждый день новое</div>
+    <div class="h2">КАЖДЫЙ ДЕНЬ<br><span class="gold">ПРИКЛЮЧЕНИЕ</span></div>
+    <div class="div"></div>
+    <div class="blist">
+      <div class="br"><div class="bi">🏜</div><div class="bt"><b>Патара-бич</b> — дюны, слётываем на мягкий песок, купаемся, гуляем по старинному храмовому комплексу</div></div>
+      <div class="br"><div class="bi">🏄</div><div class="bt"><b>Кайт-спот</b> — разноцветный спортивный вайб. Смотришь или катаешься — сам решаешь</div></div>
+      <div class="br"><div class="bi">🚣</div><div class="bt"><b>Каяки в Кабак-долине</b> — одно из красивейших мест Турции</div></div>
+      <div class="br"><div class="bi">⛵</div><div class="bt"><b>Катер + прыжки со скалы</b> — долина бабочек, грот, водные войнушки</div></div>
+    </div>
+    <div class="note">Ликийская тропа · Хамам · Квадрики — по желанию ↓</div>
+  </div>
+  <div class="bp"><img src="media/IMG_2888.webp" loading="eager" decoding="async" style="object-position:center 45%;"></div>
+</div>
+
+<!-- ═══ S11 · ПРОЖИВАНИЕ ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Где живём · Только вилла</div>
+    <div class="h2">ВИЛЛА.<br>БАССЕЙН.<br><span class="teal">ВМЕСТЕ.</span></div>
+    <div class="div"></div>
+    <div class="blist">
+      <div class="br"><div class="bi">🏡</div><div class="bt">Несколько вилл рядом — <b>хороший ремонт, бассейн, газон.</b> Живём как маленький коливинг.</div></div>
+      <div class="br"><div class="bi">🍳</div><div class="bt"><b>Завтраки готовим вместе</b> — закупка включена: яйца, зелень, сладости, кофе и чай.</div></div>
+      <div class="br"><div class="bi">🌙</div><div class="bt"><b>Вечера наши</b> — музыка, разговоры, <span class="teal">вайбкодинг</span>, как захочется.</div></div>
+    </div>
+    <div class="note">Живём вместе — маленький коливинг в Турции 🏠</div>
+  </div>
+  <div class="bp"><video autoplay muted loop playsinline><source src="video/villa.mp4" type="video/mp4"></video></div>
+</div>
+
+<!-- ═══ S12 · ЧТО ВКЛЮЧЕНО · НЕБО ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Что включено · Лёгкое касание</div>
+    <div class="h2">НЕБО —<br><span class="teal">ЧТО ВХОДИТ</span></div>
+    <div class="price-tag">130 000 ₽</div>
+    <div class="div"></div>
+    <div class="blist">
+      <div class="br"><div class="bi">👨‍✈️</div><div class="bt"><b>Команда инструкторов</b> — работа на земле и в воздухе</div></div>
+      <div class="br"><div class="bi">🪂</div><div class="bt"><b>Аренда всего снаряжения</b> — наземного и летного</div></div>
+      <div class="br"><div class="bi">🎓</div><div class="bt">Все обучение: <b>наземка · тандем · дюны · первые соло-полёты</b></div></div>
+      <div class="br"><div class="bi">📻</div><div class="bt">Все брифинги, базовая теория, <b>радиосопровождение</b> в воздухе</div></div>
+      <div class="br"><div class="bi">📜</div><div class="bt"><b>Лицензия APPI</b> — международный сертификат пилота</div></div>
+      <div class="br"><div class="bi">🩺</div><div class="bt"><b>Страховка 30 000 USD</b> на парапланерный спорт</div></div>
+    </div>
+  </div>
+  <div class="bp"><img src="media/IMG_2891.webp" loading="eager" decoding="async" style="object-position:center 10%;"></div>
+</div>
+
+<!-- ═══ S13 · ЧТО ВКЛЮЧЕНО · ПРОЖИВАНИЕ ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Что включено · Пакет с проживанием</div>
+    <div class="h2">ПРОЖИВАНИЕ —<br><span class="teal">ЧТО ВХОДИТ</span></div>
+    <div class="price-tag plus">+ 130 000 ₽</div>
+    <div class="div"></div>
+    <div class="blist">
+      <div class="br"><div class="bi">🏡</div><div class="bt"><b>Вилла с бассейном</b> — вся неделя</div></div>
+      <div class="br"><div class="bi">🍳</div><div class="bt"><b>Централизованная закупка продуктов</b> для совместных завтраков</div></div>
+      <div class="br"><div class="bi">🚐</div><div class="bt"><b>Групповой трансфер</b> из аэропорта Даламан при прилёте в указанное время</div></div>
+      <div class="br"><div class="bi">🏜</div><div class="bt">Поездка на <b>Патару</b> (дюны + пляж + старинный храм)</div></div>
+      <div class="br"><div class="bi">🏄</div><div class="bt">Поездка к <b>кайт-споту</b> (транспорт включён)</div></div>
+      <div class="br"><div class="bi">🚣</div><div class="bt">Транспорт до <b>Кабак-долины</b> (каяки)</div></div>
+      <div class="br"><div class="bi">⛵</div><div class="bt"><b>Катер:</b> долина бабочек + грот + прыжки</div></div>
+    </div>
+  </div>
+  <div class="bp"><img src="media/IMG_1546.webp" loading="eager" decoding="async" style="object-position:center 80%;"></div>
+</div>
+
+<!-- ═══ S14 · ЧТО НЕ ВКЛЮЧЕНО ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Что не входит · Личные траты</div>
+    <div class="h2">ЧТО<br><span class="gold">НЕ ВХОДИТ</span></div>
+    <div class="div"></div>
+    <div class="blist">
+      <div class="br"><div class="bi">✈</div><div class="bt"><b>Перелёт</b> до аэропорта Даламан</div></div>
+      <div class="br"><div class="bi">🍽</div><div class="bt"><b>Обед и ужин</b> — в ресторанах за свой счёт</div></div>
+      <div class="br"><div class="bi">🚕</div><div class="bt"><b>Такси</b> и подъём на гору — самостоятельно</div></div>
+      <div class="br"><div class="bi">🛒</div><div class="bt"><b>Сувениры и алкоголь</b></div></div>
+      <div class="br"><div class="bi">🪁</div><div class="bt"><b>Уроки кайтинга</b> — транспорт включён, занятия оплачиваешь сам</div></div>
+    </div>
+  </div>
+  <div class="bp"><img src="media/IMG_4068.webp" loading="eager" decoding="async" style="object-position:center 10%;"></div>
+</div>
+
+<!-- ═══ S15 · ЦЕНЫ ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Стоимость · Два блока</div>
+    <div class="h2">130 + 130<br><span class="teal">= ВСЕГО</span></div>
+    <div class="div"></div>
+    <div class="price-cards">
+      <div class="pc">
+        <div class="pc-head"><div class="pc-i">🪂</div><div class="pc-name">Небо (лёгкое касание) — вопросы к Лизе</div></div>
+        <div class="pc-price">130 000 ₽</div>
+        <div class="pc-desc">Инструкторы · Снаряжение · Тандем · Наземка · Дюны · Брифинги · Лицензия APPI · Страховка 30 000$</div>
+      </div>
+      <div class="pc">
+        <div class="pc-head"><div class="pc-i">🏡</div><div class="pc-name">Пакет с проживанием — вопросы к Кате</div></div>
+        <div class="pc-price" style="color:rgba(255,224,112,0.9);">130 000 ₽</div>
+        <div class="pc-desc">Вилла · Завтраки · Трансфер · Патара · Кайт · Кабак (каяки) · Катер</div>
+      </div>
+    </div>
+    <div class="body" style="font-size:clamp(0.46rem,1.5vw,0.58rem);">Перелёт · Обед и ужин · Такси — отдельно</div>
+  </div>
+  <div class="bp"><img src="media/IMG_2484.webp" loading="eager" decoding="async" style="object-position:center 10%;"></div>
+</div>
+
+<!-- ═══ S16 · КТО ЕДЕТ ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">Кто едет · Только свои</div>
+    <div class="h2">ТОЛЬКО<br><span class="gold">НАШИ</span></div>
+    <div class="div"></div>
+    <div class="blist">
+      <div class="br"><div class="bi">👥</div><div class="bt"><b>Коливеры и их друзья.</b> Ездим жить вместе. Только свои.</div></div>
+      <div class="br"><div class="bi">🔢</div><div class="bt">Группа <b>от 10 человек.</b></div></div>
+      <div class="br"><div class="bi">✨</div><div class="bt">Главное — <b>энергия и вайб.</b></div></div>
+    </div>
+  </div>
+  <div class="bp"><img src="media/IMG_5546.webp" loading="eager" decoding="async" style="object-position:center 20%;"></div>
+</div>
+
+<!-- ═══ S17 · CTA ═══ -->
+<div class="slide">
+  <div class="prow"></div>
+  <div class="tp">
+    <div class="lbl">11–18 мая · Олюдениз · Делаем для себя</div>
+    <div class="h1">УВИДИМСЯ<br>У ИЗУМРУДНОЙ<br><span class="teal">ВОДЫ ✨</span></div>
+    <div class="div"></div>
+    <div class="scards">
+      <div class="sc"><div class="si">🪂</div><div><div class="sn2">Лиза — по небу</div><div class="st">Вопросы по полётам, программе, снаряжению — <a href="https://t.me/fly_paragliding" target="_blank" style="color:#7FECE0;text-decoration:none;font-weight:700;">@fly_paragliding</a></div></div></div>
+      <div class="sc"><div class="si">💬</div><div><div class="sn2">Катя — по организации</div><div class="st"><a href="https://t.me/katy_manahova" target="_blank" style="color:#7FECE0;text-decoration:none;font-weight:700;">@katy_manahova</a> — вопросы по заселению, логистике и организации.</div></div></div>
+    </div>
+  </div>
+  <div class="bp"><img src="media/IMG_3241.webp" loading="eager" decoding="async" style="object-position:center 50%;"></div>
+</div>
+
+<!-- ═══ NAV ═══ -->
+<div class="np" onclick="navClick(event,'p')"></div>
+<div class="nn" onclick="navClick(event,'n')"></div>
+<nav class="dots" id="navDots"></nav>
+
+</div></div>
+
+<script>
+const SLIDES=[...document.querySelectorAll('.slide')];
+const N=SLIDES.length; let cur=0;
+const dc=document.getElementById('navDots');
+for(let i=0;i<N;i++){const d=document.createElement('div');d.className='dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dc.appendChild(d);}
+const DOTS=[...dc.querySelectorAll('.dot')];
+SLIDES.forEach((sl,si)=>{
+  const pr=sl.querySelector('.prow');if(!pr)return;pr.innerHTML='';
+  for(let i=0;i<N;i++){const b=document.createElement('div');b.className='pb'+(i<si?' done':i===si?' cur':'');pr.appendChild(b);}
+});
+function goTo(n){
+  SLIDES[cur].classList.remove('active');DOTS[cur].classList.remove('active');
+  cur=(n+N)%N;
+  SLIDES[cur].classList.add('active');DOTS[cur].classList.add('active');
+  SLIDES[cur].querySelectorAll('.pb').forEach((b,i)=>{b.className='pb'+(i<cur?' done':i===cur?' cur':'');});
+}
+function next(){goTo(cur+1);}function prev(){goTo(cur-1);}
+
+function navClick(e,dir){
+  const els=document.elementsFromPoint(e.clientX,e.clientY);
+  for(const el of els){if(el.isContentEditable){el.focus();return;}}
+  dir==='n'?next():prev();
+}
+
+const ESEL='.lbl,.h1,.h2,.body,.note,.bt,.sn2,.stg-t,.stg-d,.qt,.pc-price,.pc-desc,.pc-name,.sl,.pill,.sig';
+document.querySelectorAll(ESEL).forEach(el=>{el.contentEditable='true';el.spellcheck=false;});
+
+// Allow link clicks inside contenteditable
+document.addEventListener('click',e=>{
+  const a=e.target.closest('a[href]');
+  if(a){e.stopPropagation();window.open(a.href,'_blank');return;}
+});
+
+document.addEventListener('keydown',e=>{
+  if(document.activeElement?.isContentEditable)return;
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();next();}
+  if(e.key==='ArrowLeft'){e.preventDefault();prev();}
+});
+let tx=0;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(document.activeElement?.isContentEditable)return;
+  const dx=e.changedTouches[0].clientX-tx;
+  if(Math.abs(dx)>40){dx<0?next():prev();}
+},{passive:true});
+
+const tip=document.createElement('div');
+tip.textContent='✏️ Нажми на любой текст, чтобы редактировать';
+tip.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(0,0,0,0.75);color:#fff;font-family:Inter,sans-serif;font-size:11px;padding:6px 14px;border-radius:20px;pointer-events:none;opacity:1;transition:opacity 1s;white-space:nowrap;';
+document.body.appendChild(tip);
+setTimeout(()=>{tip.style.opacity='0';},3000);
+setTimeout(()=>{tip.remove();},4200);
+</script>
+
+<script>
+// Preload all slide images immediately
+(function() {
+  var imgs = ["media/IMG_2893.webp", "media/IMG_2890.webp", "media/IMG_2461.webp", "media/IMG_2485.webp", "media/IMG_2306.webp", "media/IMG_1596.webp", "media/IMG_2995.webp", "media/IMG_1227.webp", "media/IMG_2471.webp", "media/IMG_2888.webp", "media/IMG_2891.webp", "media/IMG_1546.webp", "media/IMG_4068.webp", "media/IMG_2484.webp", "media/IMG_5546.webp", "media/IMG_3241.webp"];
+  imgs.forEach(function(src) {
+    var img = new Image();
+    img.src = src;
+  });
+})();
+</script>
+</body>
+</html>
